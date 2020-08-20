@@ -15,7 +15,11 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.KafkaContainer;
+import org.testcontainers.lifecycle.Startables;
 import org.testcontainers.shaded.com.google.common.net.HttpHeaders;
+
+import java.util.stream.Stream;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -49,13 +53,17 @@ public abstract class AbstractIntegrationTest {
         static GenericContainer<?> redis = new GenericContainer<>("redis:3-alpine")
                 .withExposedPorts(6379);
 
+        static KafkaContainer kafka = new KafkaContainer();
+
         @Override
         public void initialize(@NotNull ConfigurableApplicationContext applicationContext) {
-            redis.start();
+
+            Startables.deepStart(Stream.of(redis, kafka)).join();
 
             TestPropertyValues.of(
                     "spring.redis.host=" + redis.getContainerIpAddress(),
-                    "spring.redis.port=" + redis.getMappedPort(6379)
+                    "spring.redis.port=" + redis.getMappedPort(6379),
+                    "spring.kafka.bootstrap-servers=" + kafka.getBootstrapServers()
             ).applyTo(applicationContext);
         }
     }

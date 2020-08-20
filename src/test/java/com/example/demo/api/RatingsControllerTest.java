@@ -8,7 +8,6 @@ import static io.restassured.RestAssured.given;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.is;
 
-
 public class RatingsControllerTest extends AbstractIntegrationTest {
 
     @Test
@@ -20,7 +19,7 @@ public class RatingsControllerTest extends AbstractIntegrationTest {
                 .when()
                 .post("/ratings")
                 .then()
-                .statusLine("HTTP/1.1 202 Accepted");
+                .statusLine("HTTP/1.1 202 ");
 
         await().untilAsserted(() -> {
             given(requestSpecification)
@@ -31,7 +30,7 @@ public class RatingsControllerTest extends AbstractIntegrationTest {
                     .body("5", is(1));
         });
 
-        for (int i = 0; i <= 5; i++) {
+        for (int i = 1; i <= 5; i++) {
             given(requestSpecification)
                     .body(new Rating(talkId, i))
                     .when()
@@ -49,7 +48,18 @@ public class RatingsControllerTest extends AbstractIntegrationTest {
                     .body("3", is(1))
                     .body("4", is(1))
                     .body("5", is(2));
-
         });
+    }
+
+    @Test
+    public void testUnknownTalk() {
+        String talkId = "cdi-the-great-parts";
+
+        given(requestSpecification)
+                .body(new Rating(talkId, 5))
+                .when()
+                .post("/ratings")
+                .then()
+                .statusLine("HTTP/1.1 404 ");
     }
 }
