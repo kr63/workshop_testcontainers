@@ -25,7 +25,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT, properties = {
-        "spring.datasource.url=jdbc:tc:postgresql:10-alpine:///workshop",
+        "spring.datasource.url=jdbc:tc:postgresql:10-alpine:///workshop?TC_DAEMON=true&TC_REUSABLE=true",
         "spring.datasource.driver-class-name=org.testcontainers.jdbc.ContainerDatabaseDriver"
 })
 @ContextConfiguration(
@@ -51,9 +51,12 @@ public abstract class AbstractIntegrationTest {
     static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
         static GenericContainer<?> redis = new GenericContainer<>("redis:3-alpine")
-                .withExposedPorts(6379);
+                .withExposedPorts(6379)
+                .withReuse(true);
 
-        static KafkaContainer kafka = new KafkaContainer();
+        static KafkaContainer kafka = new KafkaContainer()
+                .withNetwork(null)
+                .withReuse(true);
 
         @Override
         public void initialize(@NotNull ConfigurableApplicationContext applicationContext) {
